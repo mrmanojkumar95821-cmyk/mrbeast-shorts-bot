@@ -30,8 +30,26 @@ def download_video(url, output_path):
         'logtostderr': False,
         'source_address': '0.0.0.0',  # bind to ipv4 since ipv6 addresses cause issues sometimes
         # Use a common user agent to avoid bot detection
-        'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        # Add extractor args to help with YouTube
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['android', 'web'],
+                'player_skip': ['webpage', 'js'],
+            }
+        },
     }
+    
+    # If cookies are provided via environment variable, use them
+    cookies_txt = os.environ.get("YOUTUBE_COOKIES")
+    if cookies_txt:
+        # Write cookies to a temp file
+        cookies_path = os.path.join(tempfile.gettempdir(), 'cookies.txt')
+        with open(cookies_path, 'w') as f:
+            f.write(cookies_txt)
+        ydl_opts['cookiefile'] = cookies_path
+        logger.info("Using cookies for authentication")
+    
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.download([url])
     return output_path
